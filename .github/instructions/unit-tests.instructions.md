@@ -19,6 +19,11 @@ Unit tests run with **Vitest** (`npm run test:unit`). They cover the two highest
 - Name pattern: `<module>.test.ts`.
 - Use `describe('<module / function>')` blocks and `it('does X when Y')` cases.
 - Add type annotations on helpers and fixtures — this codebase requires explicit types.
+- Follow the TypeScript style reported by ESLint: two-space indentation,
+  consistent quote style within each file, semicolons, trailing commas in
+  multiline structures, and a final newline.
+- Comment only non-obvious test intent or setup constraints; do not annotate
+  assertions with comments that repeat their matcher.
 
 ## Testing Pure Transforms
 
