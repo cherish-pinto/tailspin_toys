@@ -24,6 +24,50 @@ test.describe('Game Listing and Navigation', () => {
     });
   });
 
+  test('should filter games by category and publisher', async ({ page }) => {
+    await page.goto('/');
+
+    const gamesGrid = page.getByTestId('games-grid');
+    const gameCards = page.getByTestId('game-card');
+    const categoryFilters = page.getByTestId(/^category-filter-/);
+    const firstCategory = categoryFilters.first();
+    const secondCategory = categoryFilters.nth(1);
+    const publisherFilter = page.getByTestId('publisher-filter');
+    const firstCategoryId = await firstCategory.inputValue();
+    const secondCategoryId = await secondCategory.inputValue();
+
+    await test.step('Filter by multiple categories', async () => {
+      await firstCategory.check();
+      await secondCategory.check();
+      await expect(page.getByTestId('filter-results')).toContainText('Showing');
+      const categoryMatches = page.locator(
+        `[data-testid="game-card"][data-category-id="${firstCategoryId}"]:not([hidden]), [data-testid="game-card"][data-category-id="${secondCategoryId}"]:not([hidden])`,
+      );
+      await expect(page.locator('[data-testid="game-card"]:not([hidden])')).toHaveCount(
+        await categoryMatches.count(),
+      );
+      await expect(gamesGrid).toBeVisible();
+    });
+
+    await test.step('Combine categories with a publisher', async () => {
+      await publisherFilter.selectOption({ index: 1 });
+      await expect(page.getByTestId('filter-results')).toContainText('Showing');
+      const publisherId = await publisherFilter.inputValue();
+      const combinedMatches = page.locator(
+        `[data-testid="game-card"][data-publisher-id="${publisherId}"]:not([hidden])`,
+      );
+      await expect(page.locator('[data-testid="game-card"]:not([hidden])')).toHaveCount(
+        await combinedMatches.count(),
+      );
+    });
+
+    await test.step('Clear all filters', async () => {
+      await page.getByTestId('reset-filters').click();
+      await expect(page.getByTestId('filter-results')).toHaveText(/Showing \d+ games?/);
+      await expect(page.locator('[data-testid="game-card"]:not([hidden])')).toHaveCount(await gameCards.count());
+    });
+  });
+
   test('should navigate to correct game details page when clicking on a game', async ({ page }) => {
     let gameId: string | null;
     let gameTitle: string | null;
